@@ -1,26 +1,21 @@
 id: aerial_survey_roi
 
 requirements:
-  - name: ecoscope-workflows-core
-    version: "0.22.17.*"
-    channel: https://repo.prefix.dev/ecoscope-workflows/
-
-  - name: ecoscope-workflows-ext-ecoscope
-    version: "0.22.17.*"
+  - name: ecoscope-platform
+    version: ">=2.15.0, <2.16.0"
     channel: https://repo.prefix.dev/ecoscope-workflows/
 
   - name: ecoscope-workflows-ext-custom
-    version: "0.0.39.*"
+    version: "0.1.0rc14.*"
     channel: https://repo.prefix.dev/ecoscope-workflows-custom/
 
   - name: ecoscope-workflows-ext-ste
-    version: "0.0.18.*"
+    version: "0.0.0rc1.*"
     channel: https://repo.prefix.dev/ecoscope-workflows-custom/
 
-  - name: ecoscope-workflows-ext-mnc
-    version: "0.0.9.*"
-    channel: https://repo.prefix.dev/ecoscope-workflows-custom/
-
+  - name: pydeck
+    version: 0.9.2
+    channel: conda-forge 
 
 rjsf-overrides:
   properties:
@@ -72,40 +67,17 @@ workflow:
     tasks:
       - name: null
         id: retrieve_file_params
-        task: get_file_path
+        task: ecoscope_workflows_ext_ste.tasks.io.get_file_path
         partial: 
           output_path: ${{ env.ECOSCOPE_WORKFLOWS_RESULTS }}
 
-  - name: load gdf 
+  - name: Load File 
     id: load_gdf 
     task: load_df 
     partial:
       file_path: ${{ workflow.retrieve_file_params.return }}
       layer: null
-      deserialize_json: false
-
-  - name: Assign geom type to gdf 
-    id: assign_geom_type 
-    task: get_gdf_geom_type 
-    partial: 
-      gdf: ${{ workflow.load_gdf.return }}
-
-  - name: Generate layers for map 
-    id: generate_layers_map
-    task: create_deckgl_layer_from_gdf 
-    partial: 
-      gdf: ${{ workflow.assign_geom_type.return }}
-      style: 
-        get_fill_color: [85, 107, 47]
-        get_line_color: [85, 107, 47]
-        opacity: 0.15
-        stroked: true 
-        get_line_width: 1.25
-      legend: 
-        title: ""
-        values:
-          - label: Area of Interest
-            color: "#556b2f"
+      deserialize_json: true
 
   - title: Draw Aerial Survey Lines
     type: task-group
@@ -113,49 +85,73 @@ workflow:
     tasks:
       - name: null
         id: survey_lines
-        task: draw_survey_lines
+        task: ecoscope_workflows_ext_ste.tasks.spatial_operations.create_survey_transects
         partial:
           gdf: ${{ workflow.load_gdf.return }}
+          planar_crs: null
 
   - name: Filter columns 
-    id: filter_column_gpkg
-    task: filter_columns 
+    id: filter_columns
+    task: ecoscope_workflows_ext_ste.tasks.transformation.subset_columns
     partial: 
       df: ${{ workflow.survey_lines.return }}
+      strict: false
       columns: null
       exclude: 
         - "fid"
         - "FID" 
 
-  - name: Persist aerial survey as geopackage
-    id: persist_aerial_gdf
-    task: persist_df
-    partial:
-      filetype: "gpkg"
-      filename: aerial_survey
-      df: ${{ workflow.filter_column_gpkg.return }}
-      root_path: ${{ env.ECOSCOPE_WORKFLOWS_RESULTS }}
-
   - name: Persist aerial survey as geoparquet
     id: persist_aerial_gpq
-    task: persist_df
+    task: persist_df_wrapper
     partial:
-      filetype: "geoparquet"
-      filename: aerial_survey
+      filetypes: 
+        - "geoparquet"
+      filename_prefix: "survey_lines"
+      filename: null
+      sanitize: true 
       df: ${{ workflow.survey_lines.return }}
       root_path: ${{ env.ECOSCOPE_WORKFLOWS_RESULTS }}
 
   - name: Transform gdf to epsg 4326
     id: transform_gdf
-    task: transform_gdf_crs 
+    task: reproject_gdf
     partial:
       gdf: ${{ workflow.survey_lines.return }}
-      crs: "EPSG:4326"
+      target_crs: "EPSG:4326"
+
+  - name: Create Aerial Survey Lines
+    id: generate_layers_map
+    task: ecoscope_workflows_ext_custom.tasks.results.create_geojson_layer
+    partial:
+      data_url: null
+      layer_style: 
+        filled: true 
+        stroked: true 
+        extruded: false 
+        wireframe: false
+        get_fill_color: [85, 107, 47]
+        get_line_color: [85, 107, 47]
+        opacity: 0.25
+        get_line_width: 1.00
+        get_elevation: 0
+        get_point_radius: 1
+        line_width_units: pixels 
+        line_width_scale: 1 
+        line_width_min_pixels: 1
+        line_width_max_pixels: 5
+      legend:
+        title: ""
+        values:
+          - label: Area of Interest
+            color: "#556b2f"
+      geodataframe: ${{ workflow.load_gdf.return }}
 
   - name: Create Aerial Survey Lines
     id: aerial_survey_polylines
-    task: create_geojson_layer
+    task: ecoscope_workflows_ext_custom.tasks.results.create_geojson_layer
     partial:
+      data_url: null
       layer_style: 
         filled: false 
         stroked: true 
@@ -164,7 +160,7 @@ workflow:
         get_fill_color: [255, 255, 0]
         get_line_color: [255, 255, 0]
         opacity: 0.55
-        get_line_width: 1.15
+        get_line_width: 1.00
         get_elevation: 0
         get_point_radius: 1
         line_width_units: pixels 
@@ -180,32 +176,26 @@ workflow:
 
   - name: Zoom to gdf extent 
     id: zoom_gdf_extent
-    task: view_state_deck_gdf
+    task: ecoscope_workflows_ext_custom.tasks.results.view_state_from_geodataframes
     partial:
-      pitch: 0
-      bearing: 0 
-      gdf: ${{ workflow.load_gdf.return }}
-  
-  - name: Combine generated aerial survey lines with custom gdf 
-    id: combine_map_layers 
-    task: combine_deckgl_map_layers 
-    partial: 
-      static_layers: 
-        - ${{ workflow.generate_layers_map.return }}
-      grouped_layers: 
-        - ${{ workflow.aerial_survey_polylines.return }}
-    
+      max_zoom: 15
+      geodataframes: 
+        - ${{ workflow.load_gdf.return }}
+        
   - name: Draw Aerial Survey Lines Ecomap
     id: draw_aerial_survey_lines_ecomap
-    task: draw_map
+    task: ecoscope_workflows_ext_custom.tasks.results.draw_map
     partial:
       tile_layers: ${{ workflow.configure_base_maps.return }}
       static: false
       title: null
-      max_zoom: 10
+      max_zoom: 15
       legend_style: 
         placement: bottom-right 
-      geo_layers: ${{ workflow.combine_map_layers.return }}
+      geo_layers: 
+        - ${{ workflow.aerial_survey_polylines.return }}
+        - ${{ workflow.generate_layers_map.return }}
+
       view_state: ${{ workflow.zoom_gdf_extent.return }}
 
   - name: Persist Ecomaps

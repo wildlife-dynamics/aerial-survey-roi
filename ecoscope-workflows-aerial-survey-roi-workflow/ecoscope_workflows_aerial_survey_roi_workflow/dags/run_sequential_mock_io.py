@@ -7,56 +7,61 @@ Lines specific to the testing context are marked with a test tube emoji (🧪) t
 that they would not be included (or would be different) in the production version of this file.
 """
 
-import json
 import os
 import warnings  # 🧪
+from typing import Any
 
-from ecoscope_workflows_core.tasks.config import (
-    set_workflow_details as set_workflow_details,
-)
-from ecoscope_workflows_core.tasks.filter import set_time_range as set_time_range
-from ecoscope_workflows_core.tasks.groupby import set_groupers as set_groupers
-from ecoscope_workflows_core.tasks.io import persist_text as persist_text
-from ecoscope_workflows_core.tasks.results import (
+from ecoscope.platform.tasks.config import set_workflow_details as set_workflow_details
+from ecoscope.platform.tasks.filter import set_time_range as set_time_range
+from ecoscope.platform.tasks.groupby import set_groupers as set_groupers
+from ecoscope.platform.tasks.io import persist_text as persist_text
+from ecoscope.platform.tasks.results import (
     create_map_widget_single_view as create_map_widget_single_view,
 )
-from ecoscope_workflows_core.tasks.results import gather_dashboard as gather_dashboard
-from ecoscope_workflows_core.tasks.skip import (
+from ecoscope.platform.tasks.results import gather_dashboard as gather_dashboard
+from ecoscope.platform.tasks.skip import (
     any_dependency_skipped as any_dependency_skipped,
 )
-from ecoscope_workflows_core.tasks.skip import any_is_empty_df as any_is_empty_df
+from ecoscope.platform.tasks.skip import any_is_empty_df as any_is_empty_df
 from ecoscope_workflows_ext_custom.tasks.io import load_df as load_df
-from ecoscope_workflows_ext_custom.tasks.results import (
-    create_geojson_layer as create_geojson_layer,
+from ecoscope_workflows_ext_custom.tasks.io import (
+    persist_df_wrapper as persist_df_wrapper,
 )
-from ecoscope_workflows_ext_custom.tasks.results import draw_map as draw_map
+from ecoscope_workflows_ext_custom.tasks.results import (
+    create_geojson_layer as create_geojson_layer_1,
+)
+from ecoscope_workflows_ext_custom.tasks.results import draw_map as draw_map_1
 from ecoscope_workflows_ext_custom.tasks.results import (
     set_base_maps_pydeck as set_base_maps_pydeck,
 )
-from ecoscope_workflows_ext_ecoscope.tasks.io import persist_df as persist_df
-from ecoscope_workflows_ext_mnc.tasks import filter_columns as filter_columns
-from ecoscope_workflows_ext_ste.tasks import (
-    combine_deckgl_map_layers as combine_deckgl_map_layers,
+from ecoscope_workflows_ext_custom.tasks.results import (
+    view_state_from_geodataframes as view_state_from_geodataframes_1,
 )
-from ecoscope_workflows_ext_ste.tasks import (
-    create_deckgl_layer_from_gdf as create_deckgl_layer_from_gdf,
+from ecoscope_workflows_ext_custom.tasks.spatial_ops import (
+    reproject_gdf as reproject_gdf,
 )
-from ecoscope_workflows_ext_ste.tasks import draw_survey_lines as draw_survey_lines
-from ecoscope_workflows_ext_ste.tasks import get_file_path as get_file_path
-from ecoscope_workflows_ext_ste.tasks import get_gdf_geom_type as get_gdf_geom_type
-from ecoscope_workflows_ext_ste.tasks import transform_gdf_crs as transform_gdf_crs
-from ecoscope_workflows_ext_ste.tasks import view_state_deck_gdf as view_state_deck_gdf
+from ecoscope_workflows_ext_ste.tasks.io import get_file_path as get_file_path
+from ecoscope_workflows_ext_ste.tasks.spatial_operations import (
+    create_survey_transects as create_survey_transects,
+)
+from ecoscope_workflows_ext_ste.tasks.transformation import (
+    subset_columns as subset_columns,
+)
+from wt_contracts import validate as _validate
+from wt_task import task
 
-from ..params import Params
+from .. import metadata as _metadata
 
 
-def main(params: Params):
+def main(params: dict[str, Any], validate_params_schema: bool = True):
     warnings.warn("This test script should not be used in production!")  # 🧪
 
-    params_dict = json.loads(params.model_dump_json(exclude_unset=True))
+    if validate_params_schema:
+        _validate(params, _metadata.load_params_schema())
 
     workflow_details = (
-        set_workflow_details.validate()
+        task(set_workflow_details)
+        .validate()
         .set_task_instance_id("workflow_details")
         .handle_errors()
         .with_tracing()
@@ -67,12 +72,13 @@ def main(params: Params):
             ],
             unpack_depth=1,
         )
-        .partial(**(params_dict.get("workflow_details") or {}))
+        .partial(**(params.get("workflow_details") or {}))
         .call()
     )
 
     time_range = (
-        set_time_range.validate()
+        task(set_time_range)
+        .validate()
         .set_task_instance_id("time_range")
         .handle_errors()
         .with_tracing()
@@ -83,12 +89,13 @@ def main(params: Params):
             ],
             unpack_depth=1,
         )
-        .partial(**(params_dict.get("time_range") or {}))
+        .partial(**(params.get("time_range") or {}))
         .call()
     )
 
     groupers = (
-        set_groupers.validate()
+        task(set_groupers)
+        .validate()
         .set_task_instance_id("groupers")
         .handle_errors()
         .with_tracing()
@@ -99,12 +106,13 @@ def main(params: Params):
             ],
             unpack_depth=1,
         )
-        .partial(groupers=[], **(params_dict.get("groupers") or {}))
+        .partial(groupers=[], **(params.get("groupers") or {}))
         .call()
     )
 
     configure_base_maps = (
-        set_base_maps_pydeck.validate()
+        task(set_base_maps_pydeck)
+        .validate()
         .set_task_instance_id("configure_base_maps")
         .handle_errors()
         .with_tracing()
@@ -128,13 +136,14 @@ def main(params: Params):
                     "max_zoom": 20,
                 },
             ],
-            **(params_dict.get("configure_base_maps") or {}),
+            **(params.get("configure_base_maps") or {}),
         )
         .call()
     )
 
     retrieve_file_params = (
-        get_file_path.validate()
+        task(get_file_path)
+        .validate()
         .set_task_instance_id("retrieve_file_params")
         .handle_errors()
         .with_tracing()
@@ -147,13 +156,14 @@ def main(params: Params):
         )
         .partial(
             output_path=os.environ["ECOSCOPE_WORKFLOWS_RESULTS"],
-            **(params_dict.get("retrieve_file_params") or {}),
+            **(params.get("retrieve_file_params") or {}),
         )
         .call()
     )
 
     load_gdf = (
-        load_df.validate()
+        task(load_df)
+        .validate()
         .set_task_instance_id("load_gdf")
         .handle_errors()
         .with_tracing()
@@ -167,60 +177,15 @@ def main(params: Params):
         .partial(
             file_path=retrieve_file_params,
             layer=None,
-            deserialize_json=False,
-            **(params_dict.get("load_gdf") or {}),
-        )
-        .call()
-    )
-
-    assign_geom_type = (
-        get_gdf_geom_type.validate()
-        .set_task_instance_id("assign_geom_type")
-        .handle_errors()
-        .with_tracing()
-        .skipif(
-            conditions=[
-                any_is_empty_df,
-                any_dependency_skipped,
-            ],
-            unpack_depth=1,
-        )
-        .partial(gdf=load_gdf, **(params_dict.get("assign_geom_type") or {}))
-        .call()
-    )
-
-    generate_layers_map = (
-        create_deckgl_layer_from_gdf.validate()
-        .set_task_instance_id("generate_layers_map")
-        .handle_errors()
-        .with_tracing()
-        .skipif(
-            conditions=[
-                any_is_empty_df,
-                any_dependency_skipped,
-            ],
-            unpack_depth=1,
-        )
-        .partial(
-            gdf=assign_geom_type,
-            style={
-                "get_fill_color": [85, 107, 47],
-                "get_line_color": [85, 107, 47],
-                "opacity": 0.15,
-                "stroked": True,
-                "get_line_width": 1.25,
-            },
-            legend={
-                "title": "",
-                "values": [{"label": "Area of Interest", "color": "#556b2f"}],
-            },
-            **(params_dict.get("generate_layers_map") or {}),
+            deserialize_json=True,
+            **(params.get("load_gdf") or {}),
         )
         .call()
     )
 
     survey_lines = (
-        draw_survey_lines.validate()
+        task(create_survey_transects)
+        .validate()
         .set_task_instance_id("survey_lines")
         .handle_errors()
         .with_tracing()
@@ -231,13 +196,14 @@ def main(params: Params):
             ],
             unpack_depth=1,
         )
-        .partial(gdf=load_gdf, **(params_dict.get("survey_lines") or {}))
+        .partial(gdf=load_gdf, planar_crs=None, **(params.get("survey_lines") or {}))
         .call()
     )
 
-    filter_column_gpkg = (
-        filter_columns.validate()
-        .set_task_instance_id("filter_column_gpkg")
+    filter_columns = (
+        task(subset_columns)
+        .validate()
+        .set_task_instance_id("filter_columns")
         .handle_errors()
         .with_tracing()
         .skipif(
@@ -249,37 +215,17 @@ def main(params: Params):
         )
         .partial(
             df=survey_lines,
+            strict=False,
             columns=None,
             exclude=["fid", "FID"],
-            **(params_dict.get("filter_column_gpkg") or {}),
-        )
-        .call()
-    )
-
-    persist_aerial_gdf = (
-        persist_df.validate()
-        .set_task_instance_id("persist_aerial_gdf")
-        .handle_errors()
-        .with_tracing()
-        .skipif(
-            conditions=[
-                any_is_empty_df,
-                any_dependency_skipped,
-            ],
-            unpack_depth=1,
-        )
-        .partial(
-            filetype="gpkg",
-            filename="aerial_survey",
-            df=filter_column_gpkg,
-            root_path=os.environ["ECOSCOPE_WORKFLOWS_RESULTS"],
-            **(params_dict.get("persist_aerial_gdf") or {}),
+            **(params.get("filter_columns") or {}),
         )
         .call()
     )
 
     persist_aerial_gpq = (
-        persist_df.validate()
+        task(persist_df_wrapper)
+        .validate()
         .set_task_instance_id("persist_aerial_gpq")
         .handle_errors()
         .with_tracing()
@@ -291,17 +237,20 @@ def main(params: Params):
             unpack_depth=1,
         )
         .partial(
-            filetype="geoparquet",
-            filename="aerial_survey",
+            filetypes=["geoparquet"],
+            filename_prefix="survey_lines",
+            filename=None,
+            sanitize=True,
             df=survey_lines,
             root_path=os.environ["ECOSCOPE_WORKFLOWS_RESULTS"],
-            **(params_dict.get("persist_aerial_gpq") or {}),
+            **(params.get("persist_aerial_gpq") or {}),
         )
         .call()
     )
 
     transform_gdf = (
-        transform_gdf_crs.validate()
+        task(reproject_gdf)
+        .validate()
         .set_task_instance_id("transform_gdf")
         .handle_errors()
         .with_tracing()
@@ -314,14 +263,56 @@ def main(params: Params):
         )
         .partial(
             gdf=survey_lines,
-            crs="EPSG:4326",
-            **(params_dict.get("transform_gdf") or {}),
+            target_crs="EPSG:4326",
+            **(params.get("transform_gdf") or {}),
+        )
+        .call()
+    )
+
+    generate_layers_map = (
+        task(create_geojson_layer_1)
+        .validate()
+        .set_task_instance_id("generate_layers_map")
+        .handle_errors()
+        .with_tracing()
+        .skipif(
+            conditions=[
+                any_is_empty_df,
+                any_dependency_skipped,
+            ],
+            unpack_depth=1,
+        )
+        .partial(
+            data_url=None,
+            layer_style={
+                "filled": True,
+                "stroked": True,
+                "extruded": False,
+                "wireframe": False,
+                "get_fill_color": [85, 107, 47],
+                "get_line_color": [85, 107, 47],
+                "opacity": 0.25,
+                "get_line_width": 1.0,
+                "get_elevation": 0,
+                "get_point_radius": 1,
+                "line_width_units": "pixels",
+                "line_width_scale": 1,
+                "line_width_min_pixels": 1,
+                "line_width_max_pixels": 5,
+            },
+            legend={
+                "title": "",
+                "values": [{"label": "Area of Interest", "color": "#556b2f"}],
+            },
+            geodataframe=load_gdf,
+            **(params.get("generate_layers_map") or {}),
         )
         .call()
     )
 
     aerial_survey_polylines = (
-        create_geojson_layer.validate()
+        task(create_geojson_layer_1)
+        .validate()
         .set_task_instance_id("aerial_survey_polylines")
         .handle_errors()
         .with_tracing()
@@ -333,6 +324,7 @@ def main(params: Params):
             unpack_depth=1,
         )
         .partial(
+            data_url=None,
             layer_style={
                 "filled": False,
                 "stroked": True,
@@ -341,7 +333,7 @@ def main(params: Params):
                 "get_fill_color": [255, 255, 0],
                 "get_line_color": [255, 255, 0],
                 "opacity": 0.55,
-                "get_line_width": 1.15,
+                "get_line_width": 1.0,
                 "get_elevation": 0,
                 "get_point_radius": 1,
                 "line_width_units": "pixels",
@@ -354,13 +346,14 @@ def main(params: Params):
                 "values": [{"label": "Aerial lines", "color": "#FFFF00"}],
             },
             geodataframe=transform_gdf,
-            **(params_dict.get("aerial_survey_polylines") or {}),
+            **(params.get("aerial_survey_polylines") or {}),
         )
         .call()
     )
 
     zoom_gdf_extent = (
-        view_state_deck_gdf.validate()
+        task(view_state_from_geodataframes_1)
+        .validate()
         .set_task_instance_id("zoom_gdf_extent")
         .handle_errors()
         .with_tracing()
@@ -372,36 +365,16 @@ def main(params: Params):
             unpack_depth=1,
         )
         .partial(
-            pitch=0,
-            bearing=0,
-            gdf=load_gdf,
-            **(params_dict.get("zoom_gdf_extent") or {}),
-        )
-        .call()
-    )
-
-    combine_map_layers = (
-        combine_deckgl_map_layers.validate()
-        .set_task_instance_id("combine_map_layers")
-        .handle_errors()
-        .with_tracing()
-        .skipif(
-            conditions=[
-                any_is_empty_df,
-                any_dependency_skipped,
-            ],
-            unpack_depth=1,
-        )
-        .partial(
-            static_layers=[generate_layers_map],
-            grouped_layers=[aerial_survey_polylines],
-            **(params_dict.get("combine_map_layers") or {}),
+            max_zoom=15,
+            geodataframes=[load_gdf],
+            **(params.get("zoom_gdf_extent") or {}),
         )
         .call()
     )
 
     draw_aerial_survey_lines_ecomap = (
-        draw_map.validate()
+        task(draw_map_1)
+        .validate()
         .set_task_instance_id("draw_aerial_survey_lines_ecomap")
         .handle_errors()
         .with_tracing()
@@ -416,17 +389,18 @@ def main(params: Params):
             tile_layers=configure_base_maps,
             static=False,
             title=None,
-            max_zoom=10,
+            max_zoom=15,
             legend_style={"placement": "bottom-right"},
-            geo_layers=combine_map_layers,
+            geo_layers=[aerial_survey_polylines, generate_layers_map],
             view_state=zoom_gdf_extent,
-            **(params_dict.get("draw_aerial_survey_lines_ecomap") or {}),
+            **(params.get("draw_aerial_survey_lines_ecomap") or {}),
         )
         .call()
     )
 
     persist_ecomaps = (
-        persist_text.validate()
+        task(persist_text)
+        .validate()
         .set_task_instance_id("persist_ecomaps")
         .handle_errors()
         .with_tracing()
@@ -441,13 +415,14 @@ def main(params: Params):
             root_path=os.environ["ECOSCOPE_WORKFLOWS_RESULTS"],
             text=draw_aerial_survey_lines_ecomap,
             filename="aerial_survey.html",
-            **(params_dict.get("persist_ecomaps") or {}),
+            **(params.get("persist_ecomaps") or {}),
         )
         .call()
     )
 
     create_aerial_widgets = (
-        create_map_widget_single_view.validate()
+        task(create_map_widget_single_view)
+        .validate()
         .set_task_instance_id("create_aerial_widgets")
         .handle_errors()
         .with_tracing()
@@ -461,13 +436,14 @@ def main(params: Params):
         .partial(
             title="Aerial Survey Lines",
             data=persist_ecomaps,
-            **(params_dict.get("create_aerial_widgets") or {}),
+            **(params.get("create_aerial_widgets") or {}),
         )
         .call()
     )
 
     patrol_dashboard = (
-        gather_dashboard.validate()
+        task(gather_dashboard)
+        .validate()
         .set_task_instance_id("patrol_dashboard")
         .handle_errors()
         .with_tracing()
@@ -483,7 +459,7 @@ def main(params: Params):
             widgets=create_aerial_widgets,
             time_range=time_range,
             groupers=groupers,
-            **(params_dict.get("patrol_dashboard") or {}),
+            **(params.get("patrol_dashboard") or {}),
         )
         .call()
     )

@@ -72,13 +72,13 @@
               "$ref": "#/$defs/LocalFile"
             }
           ],
-          "title": "Input Method"
+          "default": null,
+          "title": "Input Method",
+          "description": "How to obtain the file: download from a URL or use a local file path"
         }
       },
-      "required": [
-        "input_method"
-      ],
       "type": "object",
+      "required": [],
       "title": ""
     },
     "survey_lines": {
@@ -94,7 +94,7 @@
           "type": "string"
         },
         "spacing": {
-          "default": 500,
+          "default": 300,
           "title": "Spacing",
           "type": "integer"
         }

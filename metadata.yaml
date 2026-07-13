@@ -1,21 +1,21 @@
-name:  # Title Case, e.g. "My Ecoscope Workflow Template"
+name: Aerial Survey ROI
 
 # at least one author is required
 author:
-  - name: ""
-    organization: ""
-    email: ""
+  - name: Tevin Temu
+    organization: Wildlife Dynamics
+    email: tevin@wildlifedynamics.com
 
-description: # A short description
-
-# todo: add example
-theory: "" # optional
+description: Generates aerial survey transect lines across a user-uploaded region of interest (ROI) boundary, at a specified direction and spacing, and displays them on an interactive dashboard map.
 
 # todo: add example
-output_comment: "" # optional
+theory: "Transect lines are generated across the ROI at a user-specified compass direction and spacing, then clipped to the ROI boundary, following the systematic transect design common to aerial wildlife survey flight planning." # optional
+
+# todo: add example
+output_comment: "Outputs the generated survey transects as GeoParquet file, plus an interactive HTML ecomap showing the ROI boundary and survey lines, all bundled into a dashboard widget." # optional
 
 # optional
 # example
-# citation: 
+# citation:
 #   - Wu, Y. et al. (2025). "Monitoring elephant spatial patterns with Ecoscope workflows."
-citation: [] 
+citation: []

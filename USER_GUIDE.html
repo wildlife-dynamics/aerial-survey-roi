@@ -35,8 +35,7 @@ hr { border: none; border-top: 1px solid #d8e8d8; margin: 2em 0; }
 <p>The workflow produces:</p>
 <ul>
 <li>An interactive HTML ecomap showing the survey lines overlaid on the ROI</li>
-<li>Survey lines exported as a GeoPackage (<code>.gpkg</code>)</li>
-<li>Survey lines exported as a GeoParquet (<code>.geoparquet</code>)</li>
+<li>Survey lines exported as a GeoParquet (<code>.parquet</code>)</li>
 <li>A dashboard widget displaying the map</li>
 </ul>
 <hr />
@@ -133,12 +132,11 @@ hr { border: none; border-top: 1px solid #d8e8d8; margin: 2em 0; }
 <tr><th>File</th><th>Format</th><th>Description</th></tr>
 </thead>
 <tbody>
-<tr><td><code>aerial_survey.gpkg</code></td><td>GeoPackage</td><td>Survey transect lines, ready for use in QGIS or ArcGIS</td></tr>
-<tr><td><code>aerial_survey.geoparquet</code></td><td>GeoParquet</td><td>Survey transect lines in cloud-native format</td></tr>
+<tr><td><code>survey_lines_&lt;hash&gt;.parquet</code></td><td>GeoParquet</td><td>Survey transect lines in cloud-native format (a content hash is appended to the filename to avoid overwriting previous runs)</td></tr>
 <tr><td><code>aerial_survey.html</code></td><td>HTML</td><td>Interactive ecomap with ROI boundary and survey lines</td></tr>
 </tbody>
 </table>
-<p>The dashboard displays a map widget titled <strong>"Aerial Survey Lines"</strong> showing the ROI boundary (olive green fill, 15% opacity) and the generated survey transects (yellow lines).</p>
+<p>The dashboard displays a map widget titled <strong>"Aerial Survey Lines"</strong> showing the ROI boundary (olive green fill, 25% opacity) and the generated survey transects (yellow lines).</p>
 <hr />
 <h2 id="troubleshooting">Troubleshooting</h2>
 <table>
