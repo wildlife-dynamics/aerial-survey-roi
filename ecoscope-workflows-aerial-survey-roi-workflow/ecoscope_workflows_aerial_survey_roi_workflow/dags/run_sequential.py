@@ -258,6 +258,27 @@ def main(params: dict[str, Any], validate_params_schema: bool = True):
         .call()
     )
 
+    transform_load_gdf = (
+        task(reproject_gdf)
+        .validate()
+        .set_task_instance_id("transform_load_gdf")
+        .handle_errors()
+        .with_tracing()
+        .skipif(
+            conditions=[
+                any_is_empty_df,
+                any_dependency_skipped,
+            ],
+            unpack_depth=1,
+        )
+        .partial(
+            gdf=load_gdf,
+            target_crs="EPSG:4326",
+            **(params.get("transform_load_gdf") or {}),
+        )
+        .call()
+    )
+
     generate_layers_map = (
         task(create_geojson_layer_1)
         .validate()
@@ -293,7 +314,7 @@ def main(params: dict[str, Any], validate_params_schema: bool = True):
                 "title": "",
                 "values": [{"label": "Area of Interest", "color": "#556b2f"}],
             },
-            geodataframe=load_gdf,
+            geodataframe=transform_load_gdf,
             **(params.get("generate_layers_map") or {}),
         )
         .call()
@@ -355,7 +376,7 @@ def main(params: dict[str, Any], validate_params_schema: bool = True):
         )
         .partial(
             max_zoom=15,
-            geodataframes=[load_gdf],
+            geodataframes=[transform_load_gdf],
             **(params.get("zoom_gdf_extent") or {}),
         )
         .call()

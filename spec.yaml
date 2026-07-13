@@ -120,6 +120,13 @@ workflow:
       gdf: ${{ workflow.survey_lines.return }}
       target_crs: "EPSG:4326"
 
+  - name: Transform ROI gdf to epsg 4326
+    id: transform_load_gdf
+    task: reproject_gdf
+    partial:
+      gdf: ${{ workflow.load_gdf.return }}
+      target_crs: "EPSG:4326"
+
   - name: Create Aerial Survey Lines
     id: generate_layers_map
     task: ecoscope_workflows_ext_custom.tasks.results.create_geojson_layer
@@ -145,7 +152,7 @@ workflow:
         values:
           - label: Area of Interest
             color: "#556b2f"
-      geodataframe: ${{ workflow.load_gdf.return }}
+      geodataframe: ${{ workflow.transform_load_gdf.return }}
 
   - name: Create Aerial Survey Lines
     id: aerial_survey_polylines
@@ -179,8 +186,8 @@ workflow:
     task: ecoscope_workflows_ext_custom.tasks.results.view_state_from_geodataframes
     partial:
       max_zoom: 15
-      geodataframes: 
-        - ${{ workflow.load_gdf.return }}
+      geodataframes:
+        - ${{ workflow.transform_load_gdf.return }}
         
   - name: Draw Aerial Survey Lines Ecomap
     id: draw_aerial_survey_lines_ecomap
