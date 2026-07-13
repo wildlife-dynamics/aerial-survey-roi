@@ -77,13 +77,13 @@
                   "$ref": "#/$defs/LocalFile"
                 }
               ],
-              "title": "Input Method"
+              "default": null,
+              "title": "Input Method",
+              "description": "How to obtain the file: download from a URL or use a local file path"
             }
           },
-          "required": [
-            "input_method"
-          ],
           "type": "object",
+          "required": [],
           "title": ""
         }
       }
@@ -107,7 +107,7 @@
               "description": "Compass bearing the survey lines will run from the region of interest (0 = North, 90 = East)."
             },
             "spacing": {
-              "default": 500,
+              "default": 300,
               "title": "Line Spacing (m)",
               "type": "integer",
               "description": "Distance in metres between adjacent survey lines across the region of interest."

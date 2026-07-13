@@ -42,7 +42,13 @@ jobs:
 
       - name: Recompile workflow
         run: |
-          pixi run --manifest-path pixi.toml --locked bash -c "./dev/recompile.sh --update"
+          pixi update --manifest-path pixi.toml
+          pixi run --manifest-path pixi.toml wt-compiler compile \
+            --spec spec.yaml \
+            --pkg-name-prefix=ecoscope-workflows \
+            --results-env-var=ECOSCOPE_WORKFLOWS_RESULTS \
+            --no-progress \
+            --clobber --update
 
       - name: Check for differences in generated files
         run: |

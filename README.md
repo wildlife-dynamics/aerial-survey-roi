@@ -5,8 +5,7 @@
 This workflow generates aerial survey transect lines over a user-defined Region of Interest (ROI). It takes a geospatial boundary file as input and outputs:
 
 - An interactive HTML ecomap showing the survey lines overlaid on the ROI
-- The survey lines exported as a GeoPackage (`.gpkg`)
-- The survey lines exported as a GeoParquet (`.geoparquet`)
+- The survey lines exported as a GeoParquet (`.parquet`)
 - A dashboard widget displaying the map
 
 > **Note:** This workflow only supports **polygon** geometry. Point and line geometry types are not supported.
@@ -100,12 +99,11 @@ Once the workflow completes successfully, the following files are written to `$E
 
 | File | Format | Description |
 |---|---|---|
-| `aerial_survey.gpkg` | GeoPackage | Survey transect lines, ready for use in QGIS or ArcGIS |
-| `aerial_survey.geoparquet` | GeoParquet | Survey transect lines in cloud-native format |
+| `survey_lines_<hash>.parquet` | GeoParquet | Survey transect lines in cloud-native format (a content hash is appended to the filename to avoid overwriting previous runs) |
 | `aerial_survey.html` | HTML | Interactive ecomap with ROI boundary and survey lines |
 
 The dashboard will display a single map widget titled **"Aerial Survey Lines"** showing:
-- The ROI boundary (olive green fill, 15% opacity)
+- The ROI boundary (olive green fill, 25% opacity)
 - The generated survey transects (yellow lines)
 
 ---
