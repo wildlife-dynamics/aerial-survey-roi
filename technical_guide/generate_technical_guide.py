@@ -120,7 +120,7 @@ def build():
         p("Technical Guide", SUBTITLE),
         sp(8), hr(),
         p("Transect Planning Workflow — Configuration &amp; Reference", META),
-        p(f"Version 1.0  ·  Generated {date.today().strftime('%B %d, %Y')}", META),
+        p(f"Version 1.1  ·  Generated {date.today().strftime('%B %d, %Y')}", META),
         hr(), PageBreak(),
     ]
 
@@ -134,8 +134,7 @@ def build():
             "interactive map widget in the Ecoscope dashboard."
         ),
         sp(4),
-        b("<b>aerial_survey.gpkg</b> — transect lines as a GeoPackage"),
-        b("<b>aerial_survey.geoparquet</b> — transect lines in GeoParquet format"),
+        b("<b>survey_lines_&lt;hash&gt;.parquet</b> — transect lines in GeoParquet format"),
         b("<b>aerial_survey.html</b> — interactive HTML ecomap"),
         b("<b>Dashboard widget</b> — map titled <i>Aerial Survey Lines</i>"),
     ]
@@ -145,15 +144,25 @@ def build():
         sp(4), h1("2. Prerequisites"), hr(),
 
         h2("2.1 Packages"),
+        p(
+            "As of the migration to the <b>ecoscope-platform</b> task/compiler runtime, "
+            "the workflow's requirements are:"
+        ),
         tbl(
             [
-                ["Package",                             "Version",   "Channel"],
-                ["ecoscope-workflows-core",             "0.22.17.*", "https://repo.prefix.dev/ecoscope-workflows/"],
-                ["ecoscope-workflows-ext-ecoscope",     "0.22.17.*", "https://repo.prefix.dev/ecoscope-workflows/"],
-                ["ecoscope-workflows-ext-custom",       "0.0.39.*",  "https://repo.prefix.dev/ecoscope-workflows-custom/"],
-                ["ecoscope-workflows-ext-ste",          "0.0.18.*",  "https://repo.prefix.dev/ecoscope-workflows-custom/"],
+                ["Package",                         "Version",              "Channel"],
+                ["ecoscope-platform",               ">=2.15.0, &lt;2.16.0",  "https://repo.prefix.dev/ecoscope-workflows/"],
+                ["ecoscope-workflows-ext-custom",   "0.1.0rc14.*",           "https://repo.prefix.dev/ecoscope-workflows-custom/"],
+                ["ecoscope-workflows-ext-ste",      "0.0.0rc1.*",            "https://repo.prefix.dev/ecoscope-workflows-custom/"],
+                ["pydeck",                          "0.9.2",                 "conda-forge"],
             ],
-            [6*cm, 3*cm, 7.5*cm],
+            [6*cm, 3.5*cm, 7*cm],
+        ),
+        note(
+            "<code>ecoscope-workflows-core</code> and <code>ecoscope-workflows-ext-ecoscope</code> "
+            "are no longer direct dependencies — their task coverage now lives in "
+            "<code>ecoscope-platform</code>. Unlike some other STE workflows, this one does "
+            "not depend on <code>opentelemetry-sdk</code>."
         ),
 
         sp(4), h2("2.2 Environment"),
@@ -240,10 +249,9 @@ def build():
         h3("Automatic tasks after load"),
         tbl(
             [
-                ["Task ID",             "Function",                    "Action"],
-                ["load_gdf",            "load_df",                     "Load file into GeoDataFrame."],
-                ["assign_geom_type",    "get_gdf_geom_type",           "Tag geometry type for downstream rendering."],
-                ["generate_layers_map", "create_deckgl_layer_from_gdf","Create ROI boundary layer — olive green (#556b2f), 15 % opacity."],
+                ["Task ID",             "Function",             "Action"],
+                ["load_gdf",            "load_df",              "Load file into GeoDataFrame."],
+                ["generate_layers_map", "create_geojson_layer", "Create ROI boundary layer — olive green (#556b2f), 25 % opacity."],
             ],
             [4*cm, 4.5*cm, 8*cm],
         ),
@@ -255,7 +263,7 @@ def build():
         p(
             "<b>Task group</b>  ·  "
             "<b>Task ID:</b> <code>survey_lines</code>  ·  "
-            "<b>Function:</b> <code>draw_survey_lines</code>"
+            "<b>Function:</b> <code>ecoscope_workflows_ext_ste.tasks.spatial_operations.create_survey_transects</code>"
         ),
         p(
             "Generates parallel transect lines tiled across the ROI bounding box at the "
@@ -264,11 +272,11 @@ def build():
         ),
         tbl(
             [
-                ["Parameter", "UI Label",                  "Type",   "Description",                                          "Example"],
-                ["direction", "Survey Direction (degrees)", "number", "Compass bearing (0–360°). 0° = N–S, 90° = E–W.",       "0"],
-                ["spacing",   "Line Spacing (m)",           "number", "Distance in metres between adjacent transect lines.",   "1500"],
+                ["Parameter", "UI Label",                  "Type",           "Description",                                          "Example"],
+                ["direction", "Survey Direction (degrees)", "compass choice", "Compass bearing the lines will run. 0° = N–S, 90° = E–W.", "North South"],
+                ["spacing",   "Line Spacing (m)",           "number",         "Distance in metres between adjacent transect lines.",   "1500"],
             ],
-            [2.5*cm, 4.5*cm, 2*cm, 6*cm, 1.5*cm],
+            [2.5*cm, 4.5*cm, 2.5*cm, 5.5*cm, 2*cm],
         ),
         sp(4),
         h3("Spacing guidance"),
@@ -282,7 +290,7 @@ def build():
             [6*cm, 10.5*cm],
         ),
         note(
-            "If spacing exceeds the cross-track ROI extent, draw_survey_lines returns an "
+            "If spacing exceeds the cross-track ROI extent, create_survey_transects returns an "
             "empty GeoDataFrame and all downstream tasks are skipped. Reduce spacing and re-run."
         ),
         sp(4),
@@ -299,6 +307,24 @@ def build():
         ),
     ]
 
+    # 3.5 Basemap Layers
+    story += [
+        sp(4), h2("3.5 Configure Base Map Layers"),
+        p(
+            "<b>Task ID:</b> <code>configure_base_maps</code>  ·  "
+            "<b>Function:</b> <code>set_base_maps_pydeck</code>"
+        ),
+        p("Two stacked ArcGIS tile layers form the background of the ecomap. Pre-filled with defaults, but user-editable."),
+        tbl(
+            [
+                ["Layer",              "Default Opacity", "Max Zoom"],
+                ["ESRI World Hillshade",   "1.0",  "20"],
+                ["ESRI World Street Map",  "0.15", "20"],
+            ],
+            [6*cm, 4*cm, 6.5*cm],
+        ),
+    ]
+
     # ── 4. Workflow DAG ────────────────────────────────────────────────────────
     story += [
         sp(4), h1("4. Workflow DAG"), hr(),
@@ -309,28 +335,33 @@ def build():
         sp(4),
         tbl(
             [
-                ["Task ID",                         "Depends on",                                                   "Role"],
-                ["workflow_details",                "—",                                                            "Run name / description"],
-                ["time_range",                      "—",                                                            "Reporting time window"],
-                ["groupers",                        "—",                                                            "Attribute groupers (default: empty)"],
-                ["configure_base_maps",             "—",                                                            "ArcGIS tile layer configuration"],
-                ["retrieve_file_params",            "—",                                                            "Resolve ROI file URL or path"],
-                ["load_gdf",                        "retrieve_file_params",                                         "Load ROI into GeoDataFrame"],
-                ["assign_geom_type",                "load_gdf",                                                     "Tag geometry type"],
-                ["generate_layers_map",             "assign_geom_type",                                             "ROI boundary DeckGL layer (olive green)"],
-                ["survey_lines",                    "load_gdf",                                                     "Generate transect lines"],
-                ["persist_aerial_gdf",              "survey_lines",                                                 "Write aerial_survey.gpkg"],
-                ["persist_aerial_gpq",              "survey_lines",                                                 "Write aerial_survey.geoparquet"],
-                ["transform_gdf",                   "survey_lines",                                                 "Reproject lines to EPSG:4326"],
-                ["aerial_survey_polylines",         "transform_gdf",                                                "Survey lines DeckGL layer (yellow)"],
-                ["zoom_gdf_extent",                 "load_gdf",                                                     "Fit viewport to ROI extent"],
-                ["combine_map_layers",              "generate_layers_map, aerial_survey_polylines",                 "Merge ROI + survey line layers"],
-                ["draw_aerial_survey_lines_ecomap", "configure_base_maps, combine_map_layers, zoom_gdf_extent",     "Render HTML ecomap"],
-                ["persist_ecomaps",                 "draw_aerial_survey_lines_ecomap",                              "Write aerial_survey.html"],
-                ["create_aerial_widgets",           "persist_ecomaps",                                              "Wrap map in dashboard widget"],
-                ["patrol_dashboard",                "workflow_details, create_aerial_widgets, time_range, groupers","Assemble dashboard"],
+                ["Task ID",                         "Depends on",                                                    "Role"],
+                ["workflow_details",                "—",                                                             "Run name / description"],
+                ["time_range",                      "—",                                                             "Reporting time window"],
+                ["groupers",                        "—",                                                             "Attribute groupers (fixed: empty)"],
+                ["configure_base_maps",              "—",                                                            "ArcGIS tile layer configuration"],
+                ["retrieve_file_params",            "—",                                                             "Resolve ROI file URL or path"],
+                ["load_gdf",                        "retrieve_file_params",                                          "Load ROI into GeoDataFrame"],
+                ["generate_layers_map",             "load_gdf",                                                      "ROI boundary DeckGL layer (olive green)"],
+                ["survey_lines",                    "load_gdf",                                                      "Generate transect lines"],
+                ["filter_columns",                  "survey_lines",                                                  "Drops fid/FID columns (defined but currently unused downstream)"],
+                ["persist_aerial_gpq",              "survey_lines",                                                  "Write survey_lines_&lt;hash&gt;.parquet"],
+                ["transform_gdf",                   "survey_lines",                                                  "Reproject lines to EPSG:4326"],
+                ["transform_load_gdf",              "load_gdf",                                                      "Reproject ROI to EPSG:4326"],
+                ["aerial_survey_polylines",         "transform_gdf",                                                 "Survey lines DeckGL layer (yellow)"],
+                ["zoom_gdf_extent",                 "transform_load_gdf",                                            "Fit viewport to ROI extent"],
+                ["draw_aerial_survey_lines_ecomap", "configure_base_maps, generate_layers_map, aerial_survey_polylines, zoom_gdf_extent", "Render HTML ecomap"],
+                ["persist_ecomaps",                 "draw_aerial_survey_lines_ecomap",                               "Write aerial_survey.html"],
+                ["create_aerial_widgets",           "persist_ecomaps",                                               "Wrap map in dashboard widget"],
+                ["patrol_dashboard",                "workflow_details, create_aerial_widgets, time_range, groupers", "Assemble dashboard"],
             ],
-            [4*cm, 5.5*cm, 7*cm],
+            [4*cm, 6*cm, 6.5*cm],
+        ),
+        note(
+            "<code>filter_columns</code> is defined in <code>spec.yaml</code> but its output "
+            "is not currently wired into any downstream task — both "
+            "<code>persist_aerial_gpq</code> and <code>transform_gdf</code> read from "
+            "<code>survey_lines</code> directly, so the exported columns are not filtered."
         ),
     ]
 
@@ -340,19 +371,22 @@ def build():
         p("All files are written to <code>$ECOSCOPE_WORKFLOWS_RESULTS</code>."),
         tbl(
             [
-                ["File",                   "Format",     "Use"],
-                ["aerial_survey.gpkg",     "GeoPackage", "QGIS, ArcGIS, GPS flight-planning"],
-                ["aerial_survey.geoparquet","GeoParquet", "Python / GeoPandas, cloud storage"],
-                ["aerial_survey.html",     "HTML",       "Browser — interactive PyDeck ecomap"],
-                ["Dashboard widget",       "Ecoscope",   "In-app reporting"],
+                ["File",                          "Format",     "Use"],
+                ["survey_lines_&lt;hash&gt;.parquet", "GeoParquet", "Python / GeoPandas, cloud storage"],
+                ["aerial_survey.html",            "HTML",       "Browser — interactive PyDeck ecomap"],
+                ["Dashboard widget",              "Ecoscope",   "In-app reporting"],
             ],
             [4.5*cm, 3*cm, 9*cm],
+        ),
+        p(
+            "A content hash is appended to the GeoParquet filename to avoid overwriting "
+            "previous runs' output."
         ),
         sp(4), h2("Map layer styles"),
         tbl(
             [
                 ["Layer",            "Colour",                             "Opacity",  "Width"],
-                ["ROI boundary",     "Olive green  #556b2f",               "15 % fill","1.25 px"],
+                ["ROI boundary",     "Olive green  #556b2f",               "25 % fill","1.00 px"],
                 ["Survey transects", "Yellow  #FFFF00",                    "55 %",     "1–5 px"],
                 ["World Hillshade",  "ArcGIS tile",                        "100 %",    "—"],
                 ["World Street Map", "ArcGIS tile",                        "15 %",     "—"],
@@ -396,7 +430,7 @@ def build():
             [
                 ["Symptom",                              "Cause",                                    "Fix"],
                 ["Tasks skipped downstream",
-                 "Empty GeoDataFrame from ROI load or draw_survey_lines.",
+                 "Empty GeoDataFrame from ROI load or create_survey_transects.",
                  "Check file path/URL; verify polygon features in QGIS; reduce spacing."],
                 ["No lines on map",
                  "Spacing too large for the ROI extent.",
@@ -442,7 +476,7 @@ def build():
         ),
         sp(6),
         b("N–S transect lines, 1 500 m apart, clipped to the MNC boundary."),
-        b("Outputs: <code>aerial_survey.gpkg</code>, <code>aerial_survey.geoparquet</code>, <code>aerial_survey.html</code>."),
+        b("Outputs: <code>survey_lines_&lt;hash&gt;.parquet</code>, <code>aerial_survey.html</code>."),
         b("Dashboard widget titled <i>Aerial Survey Lines</i>."),
     ]
 
@@ -451,15 +485,21 @@ def build():
         sp(4), h1("9. Software Versions"), hr(),
         tbl(
             [
-                ["Package",                         "Version",   "Role"],
-                ["ecoscope-workflows-core",         "0.22.17.*", "Workflow engine and core task library"],
-                ["ecoscope-workflows-ext-ecoscope", "0.22.17.*", "Ecoscope spatial analysis tasks"],
-                ["ecoscope-workflows-ext-custom",   "0.0.39.*",  "Custom tasks including draw_survey_lines"],
-                ["ecoscope-workflows-ext-ste",      "0.0.18.*",  "STE-specific extension tasks"],
+                ["Package",                       "Version",             "Role"],
+                ["ecoscope-platform",              ">=2.15.0, &lt;2.16.0", "Workflow engine and core task library"],
+                ["ecoscope-workflows-ext-custom",  "0.1.0rc14.*",          "Custom tasks including create_geojson_layer"],
+                ["ecoscope-workflows-ext-ste",     "0.0.0rc1.*",           "STE-specific tasks including create_survey_transects"],
+                ["pydeck",                         "0.9.2",                "Renders the interactive DeckGL ecomap"],
             ],
-            [5.5*cm, 3*cm, 8*cm],
+            [5.5*cm, 4*cm, 7*cm],
         ),
-        p("Packages are pinned to patch-compatible versions (<code>.*</code>) and managed by <b>pixi</b>."),
+        p(
+            "<code>ecoscope-platform</code> is pulled from the <code>ecoscope-workflows</code> "
+            "prefix.dev channel; the two <code>ecoscope-workflows-ext-*</code> packages from "
+            "<code>ecoscope-workflows-custom</code>; <code>pydeck</code> from "
+            "<code>conda-forge</code>. Packages are pinned to compatible versions and managed "
+            "by <b>pixi</b>."
+        ),
     ]
 
     doc.build(story, onFirstPage=on_page, onLaterPages=on_page)

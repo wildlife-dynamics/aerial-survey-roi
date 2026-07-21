@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Aerial Survey ROI Workflow</title>
+  <link rel="stylesheet" href="assets/style.css" />
+</head>
+<body>
+  <header class="site-header">
+    <div class="bar">
+      <a class="brand" href="index.html">Aerial Survey ROI Workflow</a>
+      <nav>
+        <a href="index.html" class="active">Overview</a>
+        <a href="user-guide.html">User Guide</a>
+        <a href="technical-guide.html">Technical Guide</a>
+        <a href="troubleshooting.html">Troubleshooting</a>
+        <a href="https://github.com/wildlife-dynamics/aerial-survey-roi">GitHub</a>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <h1>Aerial Survey ROI Workflow</h1>
+    <p class="lede">Generates aerial survey transect lines over a user-defined Region of Interest (ROI), at a specified compass direction and spacing, and displays them on an interactive dashboard map.</p>
+
+    <div class="card-grid">
+      <a class="card" href="user-guide.html">
+        <h3>User Guide</h3>
+        <p>Step-by-step instructions for loading, configuring, and running the workflow.</p>
+      </a>
+      <a class="card" href="technical-guide.html">
+        <h3>Technical Guide</h3>
+        <p>Deeper look at the workflow's internals — task DAG, styling, and calculation reference.</p>
+      </a>
+      <a class="card" href="troubleshooting.html">
+        <h3>Troubleshooting</h3>
+        <p>Common errors you may hit while configuring or running the workflow, and how to resolve them.</p>
+      </a>
+    </div>
+
+    <h2>What it produces</h2>
+    <ul>
+      <li>An interactive HTML ecomap showing the survey lines overlaid on the ROI</li>
+      <li>The survey lines exported as a GeoParquet (<code>.parquet</code>)</li>
+      <li>A dashboard widget displaying the map</li>
+    </ul>
+    <p><strong>Note:</strong> This workflow only supports <strong>polygon</strong> geometry. Point and line geometry types are not supported.</p>
+
+    <h2>Requirements</h2>
+    <ul>
+      <li>A geospatial boundary file (GeoPackage, GeoJSON, or GeoParquet) containing <strong>polygon</strong> or <strong>multipolygon</strong> geometry, reachable by URL or local path</li>
+      <li>No EarthRanger or Google Earth Engine connection is required for this workflow</li>
+    </ul>
+
+    <h2>Get started</h2>
+    <p>New to the workflow? Start with the <a href="user-guide.html">User Guide</a> for a walkthrough of loading the template, configuring the ROI and survey lines, and running it. Running into an error? Check <a href="troubleshooting.html">Troubleshooting</a> first.</p>
+  </main>
+
+  <footer class="site-footer">
+    <p>Aerial Survey ROI Workflow &middot; <a href="https://github.com/wildlife-dynamics/aerial-survey-roi">wildlife-dynamics/aerial-survey-roi</a> on GitHub</p>
+  </footer>
+</body>
+</html>

@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Technical Guide — Aerial Survey ROI Workflow</title>
+  <link rel="stylesheet" href="assets/style.css" />
+</head>
+<body>
+  <header class="site-header">
+    <div class="bar">
+      <a class="brand" href="index.html">Aerial Survey ROI Workflow</a>
+      <nav>
+        <a href="index.html">Overview</a>
+        <a href="user-guide.html">User Guide</a>
+        <a href="technical-guide.html" class="active">Technical Guide</a>
+        <a href="troubleshooting.html">Troubleshooting</a>
+        <a href="https://github.com/wildlife-dynamics/aerial-survey-roi">GitHub</a>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <h1>Technical Guide</h1>
+    <p class="lede">A deeper look at how the Aerial Survey ROI Workflow is built: the full task DAG, layer styling, and calculation reference.</p>
+
+    <p>
+      <a href="assets/aerial_survey_roi_technical_guide.pdf">Download the full Technical Guide (PDF)</a>
+      <span class="badge">v1.1</span>
+    </p>
+    <p>Version 1.1 corrects several stale references from an earlier spec revision: the transect-generation task is <code>create_survey_transects</code> (not <code>draw_survey_lines</code>), there is no <code>.gpkg</code> output, the ROI boundary layer opacity is 25% (not 15%), the <code>assign_geom_type</code> task no longer exists, and packages have migrated to <code>ecoscope-platform</code>. It also documents the previously-missing Basemap Layers step.</p>
+
+    <h2>Contents</h2>
+    <ol>
+      <li>Overview</li>
+      <li>Prerequisites
+        <ol type="a">
+          <li>Packages</li>
+          <li>Environment</li>
+          <li>Input File</li>
+        </ol>
+      </li>
+      <li>Configurable Parameters
+        <ol type="a">
+          <li>Set Workflow Details</li>
+          <li>Time Range (optional)</li>
+          <li>Define Region of Interest</li>
+          <li>Draw Aerial Survey Lines</li>
+          <li>Configure Base Map Layers</li>
+        </ol>
+      </li>
+      <li>Workflow DAG</li>
+      <li>Outputs
+        <ol type="a">
+          <li>Map layer styles</li>
+        </ol>
+      </li>
+      <li>Skip Logic</li>
+      <li>Troubleshooting</li>
+      <li>Example Configuration</li>
+      <li>Software Versions</li>
+    </ol>
+
+    <h2>Read it here</h2>
+    <p>The guide is embedded below. If it doesn't render in your browser, use the download link above.</p>
+    <embed src="assets/aerial_survey_roi_technical_guide.pdf" type="application/pdf" width="100%" height="900px" style="border: 1px solid #d8e8d8; border-radius: 6px;" />
+  </main>
+
+  <footer class="site-footer">
+    <p>Aerial Survey ROI Workflow &middot; <a href="https://github.com/wildlife-dynamics/aerial-survey-roi">wildlife-dynamics/aerial-survey-roi</a> on GitHub</p>
+  </footer>
+</body>
+</html>

@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Troubleshooting — Aerial Survey ROI Workflow</title>
+  <link rel="stylesheet" href="assets/style.css" />
+</head>
+<body>
+  <header class="site-header">
+    <div class="bar">
+      <a class="brand" href="index.html">Aerial Survey ROI Workflow</a>
+      <nav>
+        <a href="index.html">Overview</a>
+        <a href="user-guide.html">User Guide</a>
+        <a href="technical-guide.html">Technical Guide</a>
+        <a href="troubleshooting.html" class="active">Troubleshooting</a>
+        <a href="https://github.com/wildlife-dynamics/aerial-survey-roi">GitHub</a>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <h1>Troubleshooting</h1>
+    <p class="lede">Common issues encountered while configuring, running, or contributing to the Aerial Survey ROI Workflow, and how to resolve them. If your issue isn't listed here, open an issue on <a href="https://github.com/wildlife-dynamics/aerial-survey-roi/issues">GitHub</a>.</p>
+
+    <h2>Configuration &amp; Input</h2>
+
+    <div class="error-block">
+      <p class="symptom">Workflow fails on ROI input</p>
+      <p>This workflow only supports <strong>polygon</strong> or <strong>multipolygon</strong> geometry &mdash; point and line files are not supported. Check your <a href="user-guide.html#define-roi">Define Region of Interest</a> file in QGIS or similar to confirm its geometry type before uploading.</p>
+    </div>
+
+    <div class="error-block">
+      <p class="symptom">CRS error on load</p>
+      <p>The source file has no CRS assigned. Set an EPSG code before uploading (in QGIS: Layer Properties &rarr; Set CRS; in Python: <code>gdf.set_crs('EPSG:4326')</code>). Once loaded, the ROI is reprojected to EPSG:4326 automatically &mdash; but only if a CRS is present to begin with.</p>
+    </div>
+
+    <div class="error-block">
+      <p class="symptom">URL field validation error / file not found</p>
+      <p>The <a href="user-guide.html#define-roi">Define Region of Interest</a> URL must be a direct download link, not a preview or share page &mdash; e.g. a Dropbox link needs <code>dl=1</code> (or the workflow's own handling of <code>dl=0</code>), not a browser preview URL. If the link requires authentication, it won't be reachable from the workflow runner.</p>
+    </div>
+
+    <div class="error-block">
+      <p class="symptom">Basemap tiles don't load, or the background map is blank</p>
+      <p>The <a href="user-guide.html#basemap">Basemap Layers</a> URLs are user-editable. If you changed either the ESRI World Hillshade or World Street Map layer away from its default, confirm the new tile URL follows the standard <code>{z}/{y}/{x}</code> template and is reachable from the machine running the workflow.</p>
+    </div>
+
+    <h2>Survey Lines &amp; Output</h2>
+
+    <div class="error-block">
+      <p class="symptom">No lines generated / blank survey lines layer</p>
+      <p>The <a href="user-guide.html#survey-lines">Line Spacing</a> value is too large relative to the ROI's extent in the chosen direction &mdash; if spacing exceeds the ROI's cross-track width, transect generation returns an empty result and every downstream task is skipped rather than erroring. Reduce the spacing and re-run. As a rough guide: small ROIs (&lt; 100 km&sup2;) usually want 500&ndash;1000 m spacing; large ROIs (&gt; 1000 km&sup2;) can use 2500&ndash;5000 m.</p>
+    </div>
+
+    <div class="error-block">
+      <p class="symptom">Tasks show as "skipped" rather than completed</p>
+      <p>This is expected behavior, not an error. Every task shares a global skip policy: if any upstream GeoDataFrame is empty (<code>any_is_empty_df</code>), that task and everything depending on it is skipped (<code>any_dependency_skipped</code>) rather than crashing the run. Trace back to the first skipped task in the chain &mdash; usually the ROI load or the survey line generation &mdash; to find the root cause.</p>
+    </div>
+
+    <div class="error-block">
+      <p class="symptom">No outputs written / can't find results</p>
+      <p>All outputs are written to the directory specified by the <code>ECOSCOPE_WORKFLOWS_RESULTS</code> environment variable. Confirm it's set and points to a directory the workflow process can write to.</p>
+    </div>
+
+    <div class="error-block">
+      <p class="symptom">Blank HTML map when opened directly in a browser</p>
+      <p>Some browsers block local tile/resource requests opened via <code>file://</code> due to CORS restrictions. Serve the output directory locally instead, e.g. <code>python -m http.server 8080</code>, and open the map through <code>http://localhost:8080</code>.</p>
+    </div>
+
+    <h2>Contributing &amp; CI</h2>
+    <p>These apply if you're modifying the workflow itself (<code>spec.yaml</code>, <code>test-cases.yaml</code>, or the generated <code>ecoscope-workflows-aerial-survey-roi-workflow/</code> directory) and opening a pull request.</p>
+
+    <div class="error-block">
+      <p class="symptom"><code>Generated files differ from committed files in ecoscope-workflows-aerial-survey-roi-workflow</code></p>
+      <p>The generated workflow directory is out of sync with <code>spec.yaml</code>. Run the recompile script locally and commit the result:</p>
+      <pre><code>pixi run --manifest-path pixi.toml --locked bash -c "./dev/recompile.sh --update"</code></pre>
+    </div>
+
+    <div class="error-block">
+      <p class="symptom"><code>Found wildcard version (*) in requirements</code> or <code>Found local file channel (file://) in requirements</code></p>
+      <p>In <code>spec.yaml</code>, every dependency under <code>requirements</code> must pin an exact version and use a remote conda channel &mdash; wildcard versions and local <code>file://</code> channels are only valid for local development, not for CI using published packages.</p>
+    </div>
+
+    <div class="error-block">
+      <p class="symptom"><code>VERSION.yaml (...) must be greater than main branch (...)</code></p>
+      <p>Bump <code>MAJ</code>/<code>MIN</code>/<code>PATCH</code> in <code>ecoscope-workflows-aerial-survey-roi-workflow/VERSION.yaml</code> so it's strictly greater than the version on <code>main</code> before opening or updating a PR.</p>
+    </div>
+
+    <div class="error-block">
+      <p class="symptom"><code>test-cases.yaml must contain at least one test case</code></p>
+      <p>Every workflow requires at least one top-level entry in <code>test-cases.yaml</code> with a <code>params</code> block. See the existing <code>all-grouper</code> entry in that file for the expected format.</p>
+    </div>
+
+    <div class="error-block">
+      <p class="symptom">Workflow tests fail in CI but pass locally (or vice versa)</p>
+      <p><code>test.yml</code> runs test cases against all of <code>ubuntu-latest</code>, <code>macos-latest</code>, and <code>windows-latest</code>. If a test only fails on CI, check whether it depends on network access to the ROI file's URL or on OS-specific path handling.</p>
+    </div>
+  </main>
+
+  <footer class="site-footer">
+    <p>Aerial Survey ROI Workflow &middot; <a href="https://github.com/wildlife-dynamics/aerial-survey-roi">wildlife-dynamics/aerial-survey-roi</a> on GitHub</p>
+  </footer>
+</body>
+</html>
