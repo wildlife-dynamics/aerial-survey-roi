@@ -216,7 +216,10 @@ workflow:
   - name: Create Ecomap Widgets
     id: create_aerial_widgets
     task : create_map_widget_single_view
-    partial: 
+    skipif:
+      conditions:
+        - never
+    partial:
       title: "Aerial Survey Lines"
       data: ${{ workflow.persist_ecomaps.return }}
 
