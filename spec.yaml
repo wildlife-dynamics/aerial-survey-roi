@@ -2,7 +2,7 @@ id: aerial_survey_roi
 
 requirements:
   - name: ecoscope-platform
-    version: ">=2.15.0, <2.16.0"
+    version: ==2.25.0
     channel: https://repo.prefix.dev/ecoscope-workflows/
 
   - name: ecoscope-workflows-ext-custom
@@ -34,11 +34,6 @@ workflow:
   - name: Set workflow details
     id: workflow_details
     task: set_workflow_details
-
-  # define workflow time range
-  - name: Time range
-    id: time_range
-    task: set_time_range
 
   - name: Set groupers
     id: groupers
@@ -103,7 +98,7 @@ workflow:
 
   - name: Persist aerial survey as geoparquet
     id: persist_aerial_gpq
-    task: persist_df_wrapper
+    task: ecoscope_workflows_ext_custom.tasks.io.persist_df_wrapper
     partial:
       filetypes: 
         - "geoparquet"
@@ -229,5 +224,5 @@ workflow:
     partial:
       details: ${{ workflow.workflow_details.return }}
       widgets: ${{ workflow.create_aerial_widgets.return }}
-      time_range: ${{ workflow.time_range.return }}
+      time_range: null
       groupers: ${{ workflow.groupers.return }}

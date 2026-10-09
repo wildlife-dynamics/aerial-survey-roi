@@ -20,46 +20,6 @@
       "description": "Add information that will help to differentiate this workflow from another.",
       "title": "Set workflow details"
     },
-    "time_range": {
-      "additionalProperties": false,
-      "properties": {
-        "since": {
-          "format": "date-time",
-          "title": "Since",
-          "type": "string",
-          "description": "The start time"
-        },
-        "until": {
-          "format": "date-time",
-          "title": "Until",
-          "type": "string",
-          "description": "The end time"
-        },
-        "timezone": {
-          "allOf": [
-            {
-              "$ref": "#/$defs/TimezoneInfo"
-            }
-          ],
-          "default": null,
-          "title": "Timezone"
-        },
-        "time_format": {
-          "default": "%d %b %Y %H:%M:%S",
-          "title": "Time Format",
-          "type": "string",
-          "description": "The time format",
-          "ecoscope:advanced": true
-        }
-      },
-      "required": [
-        "since",
-        "until"
-      ],
-      "type": "object",
-      "description": "Choose the period of time to analyze.",
-      "title": "Time range"
-    },
     "retrieve_file_params": {
       "additionalProperties": false,
       "properties": {
@@ -105,34 +65,6 @@
     }
   },
   "$defs": {
-    "TimezoneInfo": {
-      "properties": {
-        "label": {
-          "title": "Label",
-          "type": "string"
-        },
-        "tzCode": {
-          "title": "Tzcode",
-          "type": "string"
-        },
-        "name": {
-          "title": "Name",
-          "type": "string"
-        },
-        "utc": {
-          "title": "Utc",
-          "type": "string"
-        }
-      },
-      "required": [
-        "label",
-        "tzCode",
-        "name",
-        "utc"
-      ],
-      "title": "TimezoneInfo",
-      "type": "object"
-    },
     "DownloadFile": {
       "properties": {
         "url": {
@@ -169,14 +101,6 @@
         "description"
       ]
     },
-    "time_range": {
-      "ui:order": [
-        "since",
-        "until",
-        "timezone",
-        "time_format"
-      ]
-    },
     "survey_lines": {
       "ui:order": [
         "direction",
@@ -185,7 +109,6 @@
     },
     "ui:order": [
       "workflow_details",
-      "time_range",
       "retrieve_file_params",
       "survey_lines"
     ]

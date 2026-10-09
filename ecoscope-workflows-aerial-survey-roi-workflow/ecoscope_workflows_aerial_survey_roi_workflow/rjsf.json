@@ -20,46 +20,6 @@
       "description": "Add information that will help to differentiate this workflow from another.",
       "title": "Set workflow details"
     },
-    "time_range": {
-      "additionalProperties": false,
-      "properties": {
-        "since": {
-          "format": "date-time",
-          "title": "Since",
-          "type": "string",
-          "description": "The start time"
-        },
-        "until": {
-          "format": "date-time",
-          "title": "Until",
-          "type": "string",
-          "description": "The end time"
-        },
-        "timezone": {
-          "allOf": [
-            {
-              "$ref": "#/$defs/TimezoneInfo"
-            }
-          ],
-          "default": null,
-          "title": "Timezone"
-        },
-        "time_format": {
-          "default": "%d %b %Y %H:%M:%S",
-          "title": "Time Format",
-          "type": "string",
-          "description": "The time format",
-          "ecoscope:advanced": true
-        }
-      },
-      "required": [
-        "since",
-        "until"
-      ],
-      "type": "object",
-      "description": "Choose the period of time to analyze.",
-      "title": "Time range"
-    },
     "Define Region of Interest": {
       "type": "object",
       "description": "Define the region of interest for the aerial survey by uploading a geospatial file (GeoJSON, GeoPackage or GeoParquet) that contains the boundary of the area to be surveyed. This file will be loaded and processed to generate the survey lines.",
@@ -121,34 +81,6 @@
     }
   },
   "$defs": {
-    "TimezoneInfo": {
-      "properties": {
-        "label": {
-          "title": "Label",
-          "type": "string"
-        },
-        "tzCode": {
-          "title": "Tzcode",
-          "type": "string"
-        },
-        "name": {
-          "title": "Name",
-          "type": "string"
-        },
-        "utc": {
-          "title": "Utc",
-          "type": "string"
-        }
-      },
-      "required": [
-        "label",
-        "tzCode",
-        "name",
-        "utc"
-      ],
-      "title": "TimezoneInfo",
-      "type": "object"
-    },
     "DownloadFile": {
       "properties": {
         "url": {
@@ -185,14 +117,6 @@
         "description"
       ]
     },
-    "time_range": {
-      "ui:order": [
-        "since",
-        "until",
-        "timezone",
-        "time_format"
-      ]
-    },
     "Draw Aerial Survey Lines": {
       "survey_lines": {
         "ui:order": [
@@ -203,7 +127,6 @@
     },
     "ui:order": [
       "workflow_details",
-      "time_range",
       "Define Region of Interest",
       "Draw Aerial Survey Lines"
     ]

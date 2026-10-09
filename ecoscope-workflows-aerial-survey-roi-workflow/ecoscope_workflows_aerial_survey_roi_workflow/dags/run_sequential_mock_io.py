@@ -12,7 +12,6 @@ import warnings  # 🧪
 from typing import Any
 
 from ecoscope.platform.tasks.config import set_workflow_details as set_workflow_details
-from ecoscope.platform.tasks.filter import set_time_range as set_time_range
 from ecoscope.platform.tasks.groupby import set_groupers as set_groupers
 from ecoscope.platform.tasks.io import persist_text as persist_text
 from ecoscope.platform.tasks.results import (
@@ -26,7 +25,7 @@ from ecoscope.platform.tasks.skip import any_is_empty_df as any_is_empty_df
 from ecoscope.platform.tasks.skip import never as never
 from ecoscope_workflows_ext_custom.tasks.io import load_df as load_df
 from ecoscope_workflows_ext_custom.tasks.io import (
-    persist_df_wrapper as persist_df_wrapper,
+    persist_df_wrapper as persist_df_wrapper_1,
 )
 from ecoscope_workflows_ext_custom.tasks.results import (
     create_geojson_layer as create_geojson_layer_1,
@@ -74,23 +73,6 @@ def main(params: dict[str, Any], validate_params_schema: bool = True):
             unpack_depth=1,
         )
         .partial(**(params.get("workflow_details") or {}))
-        .call()
-    )
-
-    time_range = (
-        task(set_time_range)
-        .validate()
-        .set_task_instance_id("time_range")
-        .handle_errors()
-        .with_tracing()
-        .skipif(
-            conditions=[
-                any_is_empty_df,
-                any_dependency_skipped,
-            ],
-            unpack_depth=1,
-        )
-        .partial(**(params.get("time_range") or {}))
         .call()
     )
 
@@ -225,7 +207,7 @@ def main(params: dict[str, Any], validate_params_schema: bool = True):
     )
 
     persist_aerial_gpq = (
-        task(persist_df_wrapper)
+        task(persist_df_wrapper_1)
         .validate()
         .set_task_instance_id("persist_aerial_gpq")
         .handle_errors()
@@ -478,7 +460,7 @@ def main(params: dict[str, Any], validate_params_schema: bool = True):
         .partial(
             details=workflow_details,
             widgets=create_aerial_widgets,
-            time_range=time_range,
+            time_range=None,
             groupers=groupers,
             **(params.get("patrol_dashboard") or {}),
         )
