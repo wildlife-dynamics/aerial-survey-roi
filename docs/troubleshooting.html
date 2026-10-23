@@ -43,7 +43,7 @@
 
     <div class="error-block">
       <p class="symptom">Basemap tiles don't load, or the background map is blank</p>
-      <p>The <a href="user-guide.html#basemap">Basemap Layers</a> URLs are user-editable. If you changed either the ESRI World Hillshade or World Street Map layer away from its default, confirm the new tile URL follows the standard <code>{z}/{y}/{x}</code> template and is reachable from the machine running the workflow.</p>
+      <p>The <a href="user-guide.html#basemap">Basemap Layers</a> are the ArcGIS World Hillshade and World Street Map tile services, fixed in <code>spec.yaml</code>. If the background is blank, check that <code>server.arcgisonline.com</code> is reachable from the machine running the workflow (and from the browser viewing the map). To use different tiles, change the <code>configure_base_maps</code> URLs in <code>spec.yaml</code> and recompile.</p>
     </div>
 
     <h2>Survey Lines &amp; Output</h2>

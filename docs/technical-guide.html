@@ -26,9 +26,9 @@
 
     <p>
       <a href="assets/aerial_survey_roi_technical_guide.pdf">Download the full Technical Guide (PDF)</a>
-      <span class="badge">v1.1</span>
+      <span class="badge">v1.2</span>
     </p>
-    <p>Version 1.1 corrects several stale references from an earlier spec revision: the transect-generation task is <code>create_survey_transects</code> (not <code>draw_survey_lines</code>), there is no <code>.gpkg</code> output, the ROI boundary layer opacity is 25% (not 15%), the <code>assign_geom_type</code> task no longer exists, and packages have migrated to <code>ecoscope-platform</code>. It also documents the previously-missing Basemap Layers step.</p>
+    <p>Version 1.2 covers the upgrade to <code>ecoscope-platform</code> 2.25.3 (<code>ecoscope-workflows-ext-custom</code> 0.1.4, <code>ecoscope-workflows-ext-ste</code> 0.0.24): the ecomap is now drawn with the platform's <code>set_base_maps</code>, <code>create_geojson_layer</code>, <code>view_state_from_geodataframes</code> and <code>draw_map</code> tasks; the ROI polygon is 45% opacity with a 1.45&nbsp;px outline, the survey lines are 1.45&nbsp;px, and the street-map tiles are 20% opacity. It also removes the Time Range step (no longer on the form) and notes that the base map layers are fixed in the spec. Version 1.1 corrected several stale references from an earlier spec revision: the transect-generation task is <code>create_survey_transects</code> (not <code>draw_survey_lines</code>), there is no <code>.gpkg</code> output, the ROI boundary layer opacity is 25% (not 15%), the <code>assign_geom_type</code> task no longer exists, and packages have migrated to <code>ecoscope-platform</code>. It also documents the previously-missing Basemap Layers step.</p>
 
     <h2>Contents</h2>
     <ol>
@@ -43,15 +43,15 @@
       <li>Configurable Parameters
         <ol type="a">
           <li>Set Workflow Details</li>
-          <li>Time Range (optional)</li>
           <li>Define Region of Interest</li>
           <li>Draw Aerial Survey Lines</li>
-          <li>Configure Base Map Layers</li>
+          <li>Base Map Layers (fixed)</li>
         </ol>
       </li>
       <li>Workflow DAG</li>
       <li>Outputs
         <ol type="a">
+          <li>Map rendering</li>
           <li>Map layer styles</li>
         </ol>
       </li>

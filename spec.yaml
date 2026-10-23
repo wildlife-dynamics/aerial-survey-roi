@@ -2,15 +2,15 @@ id: aerial_survey_roi
 
 requirements:
   - name: ecoscope-platform
-    version: ==2.25.0
+    version: ==2.25.3
     channel: https://repo.prefix.dev/ecoscope-workflows/
 
   - name: ecoscope-workflows-ext-custom
-    version: "0.1.0rc14.*"
+    version: "0.1.4.*"
     channel: https://repo.prefix.dev/ecoscope-workflows-custom/
 
   - name: ecoscope-workflows-ext-ste
-    version: "0.0.0rc1.*"
+    version: "0.0.24.*"
     channel: https://repo.prefix.dev/ecoscope-workflows-custom/
 
   - name: pydeck
@@ -44,7 +44,7 @@ workflow:
   # Set basemaps connection 
   - name: Configure base map layers
     id: configure_base_maps
-    task: set_base_maps_pydeck
+    task: set_base_maps
     partial:
       base_maps:
         - url: >-
@@ -53,7 +53,7 @@ workflow:
           max_zoom: 20
         - url: >-
             https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}
-          opacity: 0.15
+          opacity: 0.20
           max_zoom: 20
 
   - title: Define Region of Interest
@@ -98,12 +98,11 @@ workflow:
 
   - name: Persist aerial survey as geoparquet
     id: persist_aerial_gpq
-    task: ecoscope_workflows_ext_custom.tasks.io.persist_df_wrapper
+    task: persist_df_wrapper
     partial:
       filetypes: 
         - "geoparquet"
       filename_prefix: "survey_lines"
-      filename: null
       sanitize: true 
       df: ${{ workflow.survey_lines.return }}
       root_path: ${{ env.ECOSCOPE_WORKFLOWS_RESULTS }}
@@ -122,10 +121,11 @@ workflow:
       gdf: ${{ workflow.load_gdf.return }}
       target_crs: "EPSG:4326"
 
-  - name: Create Aerial Survey Lines
+  - name: Create Aerial Survey Polygon
     id: generate_layers_map
-    task: ecoscope_workflows_ext_custom.tasks.results.create_geojson_layer
+    task: create_geojson_layer
     partial:
+      tooltip_columns: null
       data_url: null
       layer_style: 
         filled: true 
@@ -134,8 +134,8 @@ workflow:
         wireframe: false
         get_fill_color: [85, 107, 47]
         get_line_color: [85, 107, 47]
-        opacity: 0.25
-        get_line_width: 1.00
+        opacity: 0.45
+        get_line_width: 1.45
         get_elevation: 0
         get_point_radius: 1
         line_width_units: pixels 
@@ -151,8 +151,9 @@ workflow:
 
   - name: Create Aerial Survey Lines
     id: aerial_survey_polylines
-    task: ecoscope_workflows_ext_custom.tasks.results.create_geojson_layer
+    task: create_geojson_layer
     partial:
+      tooltip_columns: null
       data_url: null
       layer_style: 
         filled: false 
@@ -162,7 +163,7 @@ workflow:
         get_fill_color: [255, 255, 0]
         get_line_color: [255, 255, 0]
         opacity: 0.55
-        get_line_width: 1.00
+        get_line_width: 1.45
         get_elevation: 0
         get_point_radius: 1
         line_width_units: pixels 
@@ -178,7 +179,7 @@ workflow:
 
   - name: Zoom to gdf extent 
     id: zoom_gdf_extent
-    task: ecoscope_workflows_ext_custom.tasks.results.view_state_from_geodataframes
+    task: view_state_from_geodataframes
     partial:
       max_zoom: 15
       geodataframes:
@@ -186,8 +187,9 @@ workflow:
         
   - name: Draw Aerial Survey Lines Ecomap
     id: draw_aerial_survey_lines_ecomap
-    task: ecoscope_workflows_ext_custom.tasks.results.draw_map
+    task: draw_map
     partial:
+      output_type: html
       tile_layers: ${{ workflow.configure_base_maps.return }}
       static: false
       title: null
@@ -195,8 +197,8 @@ workflow:
       legend_style: 
         placement: bottom-right 
       geo_layers: 
-        - ${{ workflow.aerial_survey_polylines.return }}
         - ${{ workflow.generate_layers_map.return }}
+        - ${{ workflow.aerial_survey_polylines.return }}
 
       view_state: ${{ workflow.zoom_gdf_extent.return }}
 

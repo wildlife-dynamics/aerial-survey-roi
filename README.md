@@ -40,23 +40,14 @@ Provide a name and optional description to identify this workflow run. This labe
 | Workflow Name *(required)* | e.g., `Mara North Conservancy Aerial Survey` |
 | Workflow Description *(optional)* | A short description of the survey run |
 
-### Time Range
-
-Select the timezone and the start/end time for the analysis period. This does not filter the ROI or transect geometry — it's recorded for traceability against a specific survey window.
-
-| Field | Description |
-|-------|-------------|
-| Timezone | e.g., `Africa/Nairobi (UTC+03:00)` |
-| Since / Until | The date and time window to record against this run |
-
 ### Basemap Layers
 
-The **Configure base map layers** step sets the two stacked background tile layers on the ecomap. Pre-filled with sensible defaults, but the URL, opacity, and max zoom of each layer are editable.
+The ecomap draws two stacked ArcGIS tile layers underneath the ROI and survey lines. These are fixed in the workflow (**Configure base map layers**) and don't appear on the configuration form.
 
 | Layer | Default Opacity | Max Zoom |
 |-------|------------------|----------|
 | ESRI World Hillshade | `1.0` | `20` |
-| ESRI World Street Map | `0.15` | `20` |
+| ESRI World Street Map | `0.20` | `20` |
 
 ### Define Region of Interest
 
@@ -91,7 +82,7 @@ Click **Submit** to run the workflow.
 
 Once submitted, the runner will:
 
-1. Load the ROI boundary file into a GeoDataFrame and style it as a map layer (olive green, 25% opacity).
+1. Load the ROI boundary file into a GeoDataFrame and style it as a map layer (olive green, 45% opacity, 1.45 px outline).
 2. Generate parallel transect lines across the ROI's bounding box at the configured direction and spacing, then clip them to the ROI polygon.
 3. Reproject both the ROI and the transect lines to EPSG:4326 for display.
 4. Render the interactive ecomap (ROI boundary + survey lines over the basemap) and assemble the dashboard widget.
@@ -105,8 +96,8 @@ Once submitted, the runner will:
 | `aerial_survey.html` | HTML | Interactive ecomap with ROI boundary and survey lines |
 
 The dashboard will display a single map widget titled **"Aerial Survey Lines"** showing:
-- The ROI boundary (olive green fill, 25% opacity)
-- The generated survey transects (yellow lines, 55% opacity)
+- The ROI boundary (olive green fill, 45% opacity, 1.45 px outline)
+- The generated survey transects (yellow 1.45 px lines, 55% opacity)
 
 ---
 

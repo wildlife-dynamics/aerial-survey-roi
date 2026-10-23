@@ -4,30 +4,24 @@ from typing import Any
 
 from ecoscope.platform.tasks.config import set_workflow_details as set_workflow_details
 from ecoscope.platform.tasks.groupby import set_groupers as set_groupers
+from ecoscope.platform.tasks.io import persist_df_wrapper as persist_df_wrapper
 from ecoscope.platform.tasks.io import persist_text as persist_text
+from ecoscope.platform.tasks.results import create_geojson_layer as create_geojson_layer
 from ecoscope.platform.tasks.results import (
     create_map_widget_single_view as create_map_widget_single_view,
 )
+from ecoscope.platform.tasks.results import draw_map as draw_map
 from ecoscope.platform.tasks.results import gather_dashboard as gather_dashboard
+from ecoscope.platform.tasks.results import set_base_maps as set_base_maps
+from ecoscope.platform.tasks.results import (
+    view_state_from_geodataframes as view_state_from_geodataframes,
+)
 from ecoscope.platform.tasks.skip import (
     any_dependency_skipped as any_dependency_skipped,
 )
 from ecoscope.platform.tasks.skip import any_is_empty_df as any_is_empty_df
 from ecoscope.platform.tasks.skip import never as never
 from ecoscope_workflows_ext_custom.tasks.io import load_df as load_df
-from ecoscope_workflows_ext_custom.tasks.io import (
-    persist_df_wrapper as persist_df_wrapper_1,
-)
-from ecoscope_workflows_ext_custom.tasks.results import (
-    create_geojson_layer as create_geojson_layer_1,
-)
-from ecoscope_workflows_ext_custom.tasks.results import draw_map as draw_map_1
-from ecoscope_workflows_ext_custom.tasks.results import (
-    set_base_maps_pydeck as set_base_maps_pydeck,
-)
-from ecoscope_workflows_ext_custom.tasks.results import (
-    view_state_from_geodataframes as view_state_from_geodataframes_1,
-)
 from ecoscope_workflows_ext_custom.tasks.spatial_ops import (
     reproject_gdf as reproject_gdf,
 )
@@ -83,7 +77,7 @@ def main(params: dict[str, Any], validate_params_schema: bool = True):
     )
 
     configure_base_maps = (
-        task(set_base_maps_pydeck)
+        task(set_base_maps)
         .validate()
         .set_task_instance_id("configure_base_maps")
         .handle_errors()
@@ -104,7 +98,7 @@ def main(params: dict[str, Any], validate_params_schema: bool = True):
                 },
                 {
                     "url": "https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}",
-                    "opacity": 0.15,
+                    "opacity": 0.2,
                     "max_zoom": 20,
                 },
             ],
@@ -196,7 +190,7 @@ def main(params: dict[str, Any], validate_params_schema: bool = True):
     )
 
     persist_aerial_gpq = (
-        task(persist_df_wrapper_1)
+        task(persist_df_wrapper)
         .validate()
         .set_task_instance_id("persist_aerial_gpq")
         .handle_errors()
@@ -211,7 +205,6 @@ def main(params: dict[str, Any], validate_params_schema: bool = True):
         .partial(
             filetypes=["geoparquet"],
             filename_prefix="survey_lines",
-            filename=None,
             sanitize=True,
             df=survey_lines,
             root_path=os.environ["ECOSCOPE_WORKFLOWS_RESULTS"],
@@ -263,7 +256,7 @@ def main(params: dict[str, Any], validate_params_schema: bool = True):
     )
 
     generate_layers_map = (
-        task(create_geojson_layer_1)
+        task(create_geojson_layer)
         .validate()
         .set_task_instance_id("generate_layers_map")
         .handle_errors()
@@ -276,6 +269,7 @@ def main(params: dict[str, Any], validate_params_schema: bool = True):
             unpack_depth=1,
         )
         .partial(
+            tooltip_columns=None,
             data_url=None,
             layer_style={
                 "filled": True,
@@ -284,8 +278,8 @@ def main(params: dict[str, Any], validate_params_schema: bool = True):
                 "wireframe": False,
                 "get_fill_color": [85, 107, 47],
                 "get_line_color": [85, 107, 47],
-                "opacity": 0.25,
-                "get_line_width": 1.0,
+                "opacity": 0.45,
+                "get_line_width": 1.45,
                 "get_elevation": 0,
                 "get_point_radius": 1,
                 "line_width_units": "pixels",
@@ -304,7 +298,7 @@ def main(params: dict[str, Any], validate_params_schema: bool = True):
     )
 
     aerial_survey_polylines = (
-        task(create_geojson_layer_1)
+        task(create_geojson_layer)
         .validate()
         .set_task_instance_id("aerial_survey_polylines")
         .handle_errors()
@@ -317,6 +311,7 @@ def main(params: dict[str, Any], validate_params_schema: bool = True):
             unpack_depth=1,
         )
         .partial(
+            tooltip_columns=None,
             data_url=None,
             layer_style={
                 "filled": False,
@@ -326,7 +321,7 @@ def main(params: dict[str, Any], validate_params_schema: bool = True):
                 "get_fill_color": [255, 255, 0],
                 "get_line_color": [255, 255, 0],
                 "opacity": 0.55,
-                "get_line_width": 1.0,
+                "get_line_width": 1.45,
                 "get_elevation": 0,
                 "get_point_radius": 1,
                 "line_width_units": "pixels",
@@ -345,7 +340,7 @@ def main(params: dict[str, Any], validate_params_schema: bool = True):
     )
 
     zoom_gdf_extent = (
-        task(view_state_from_geodataframes_1)
+        task(view_state_from_geodataframes)
         .validate()
         .set_task_instance_id("zoom_gdf_extent")
         .handle_errors()
@@ -366,7 +361,7 @@ def main(params: dict[str, Any], validate_params_schema: bool = True):
     )
 
     draw_aerial_survey_lines_ecomap = (
-        task(draw_map_1)
+        task(draw_map)
         .validate()
         .set_task_instance_id("draw_aerial_survey_lines_ecomap")
         .handle_errors()
@@ -379,12 +374,13 @@ def main(params: dict[str, Any], validate_params_schema: bool = True):
             unpack_depth=1,
         )
         .partial(
+            output_type="html",
             tile_layers=configure_base_maps,
             static=False,
             title=None,
             max_zoom=15,
             legend_style={"placement": "bottom-right"},
-            geo_layers=[aerial_survey_polylines, generate_layers_map],
+            geo_layers=[generate_layers_map, aerial_survey_polylines],
             view_state=zoom_gdf_extent,
             **(params.get("draw_aerial_survey_lines_ecomap") or {}),
         )
