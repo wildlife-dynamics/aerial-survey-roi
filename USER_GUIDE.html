@@ -75,28 +75,8 @@
 </tr>
 </tbody>
 </table>
-<h3 id="time-range">Time Range</h3>
-<p>Select the timezone and the start/end time for the analysis period. This does not filter the ROI or transect geometry — it's recorded for traceability against a specific survey window.</p>
-<table>
-<thead>
-<tr class="header">
-<th>Field</th>
-<th>Description</th>
-</tr>
-</thead>
-<tbody>
-<tr class="odd">
-<td>Timezone</td>
-<td>e.g., <code>Africa/Nairobi (UTC+03:00)</code></td>
-</tr>
-<tr class="even">
-<td>Since / Until</td>
-<td>The date and time window to record against this run</td>
-</tr>
-</tbody>
-</table>
 <h3 id="basemap-layers">Basemap Layers</h3>
-<p>The <strong>Configure base map layers</strong> step sets the two stacked background tile layers on the ecomap. Pre-filled with sensible defaults, but the URL, opacity, and max zoom of each layer are editable.</p>
+<p>The ecomap draws two stacked ArcGIS tile layers underneath the ROI and survey lines. These are fixed in the workflow (<strong>Configure base map layers</strong>) and don't appear on the configuration form.</p>
 <table>
 <thead>
 <tr class="header">
@@ -113,7 +93,7 @@
 </tr>
 <tr class="even">
 <td>ESRI World Street Map</td>
-<td><code>0.15</code></td>
+<td><code>0.20</code></td>
 <td><code>20</code></td>
 </tr>
 </tbody>
@@ -174,7 +154,7 @@
 <h2 id="3-run-the-workflow">3. Run the Workflow</h2>
 <p>Once submitted, the runner will:</p>
 <ol type="1">
-<li>Load the ROI boundary file into a GeoDataFrame and style it as a map layer (olive green, 25% opacity).</li>
+<li>Load the ROI boundary file into a GeoDataFrame and style it as a map layer (olive green, 45% opacity, 1.45 px outline).</li>
 <li>Generate parallel transect lines across the ROI's bounding box at the configured direction and spacing, then clip them to the ROI polygon.</li>
 <li>Reproject both the ROI and the transect lines to EPSG:4326 for display.</li>
 <li>Render the interactive ecomap (ROI boundary + survey lines over the basemap) and assemble the dashboard widget.</li>
@@ -204,8 +184,8 @@
 </table>
 <p>The dashboard will display a single map widget titled <strong>"Aerial Survey Lines"</strong> showing:</p>
 <ul>
-<li>The ROI boundary (olive green fill, 25% opacity)</li>
-<li>The generated survey transects (yellow lines, 55% opacity)</li>
+<li>The ROI boundary (olive green fill, 45% opacity, 1.45 px outline)</li>
+<li>The generated survey transects (yellow 1.45 px lines, 55% opacity)</li>
 </ul>
 <hr />
 <h2 id="troubleshooting">Troubleshooting</h2>
